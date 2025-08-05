@@ -38,7 +38,7 @@ export interface SectionTemplate {
   name: string
   category: string
   defaultProps: Record<string, any>
-  component: React.ComponentType<any>
+  component: string
   thumbnail: string
   description?: string
 }
@@ -112,10 +112,6 @@ export interface ValidationError {
 }
 
 // Component prop interfaces
-export interface WebsiteBuilderProps {
-  initialSections?: Section[]
-  onError?: (error: BuilderError) => void
-}
 
 export interface SectionLibraryProps {
   availableSections: SectionTemplate[]

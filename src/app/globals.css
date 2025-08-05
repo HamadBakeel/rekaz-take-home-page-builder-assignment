@@ -120,3 +120,68 @@
     @apply bg-background text-foreground;
   }
 }
+/* Custom responsive utilities for the website builder */
+@layer utilities {
+  /* Mobile-first responsive breakpoints */
+  .builder-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+  }
+  
+  /* Tablet breakpoint - 768px and up */
+  @media (min-width: 768px) {
+    .builder-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .builder-grid .section-library {
+      order: 1;
+    }
+    
+    .builder-grid .preview-area {
+      order: 2;
+    }
+    
+    .builder-grid .section-editor {
+      order: 3;
+      grid-column: 1 / -1;
+    }
+  }
+  
+  /* Desktop breakpoint - 1024px and up */
+  @media (min-width: 1024px) {
+    .builder-grid {
+      grid-template-columns: 1fr 2fr 1fr;
+    }
+    
+    .builder-grid .section-library {
+      order: 1;
+    }
+    
+    .builder-grid .preview-area {
+      order: 2;
+    }
+    
+    .builder-grid .section-editor {
+      order: 3;
+      grid-column: auto;
+    }
+  }
+  
+  /* Ensure panels have minimum heights */
+  .builder-panel {
+    min-height: 400px;
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 767px) {
+    .builder-panel {
+      min-height: 300px;
+    }
+    
+    .builder-grid .preview-area {
+      order: -1; /* Show preview first on mobile */
+    }
+  }
+}
