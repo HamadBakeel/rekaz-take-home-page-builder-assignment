@@ -2,23 +2,31 @@ import React from 'react'
 import { SectionProps } from '@/types'
 
 interface FooterSectionProps extends SectionProps {
-  links?: Array<{ label: string; href: string }>
-  socialLinks?: Array<{ platform: string; href: string }>
+  linkGroups?: Array<{
+    title: string
+    links: Array<{ label: string; url: string }>
+  }>
+  socialLinks?: Array<{ platform: string; url: string; icon: string }>
   copyright?: string
 }
 
 const FooterSection: React.FC<FooterSectionProps> = ({
   title = 'Your Company',
   description = 'Building amazing experiences',
-  links = [
-    { label: 'Privacy Policy', href: '#' },
-    { label: 'Terms of Service', href: '#' },
-    { label: 'Contact', href: '#' },
+  linkGroups = [
+    {
+      title: 'Quick Links',
+      links: [
+        { label: 'Privacy Policy', url: '#' },
+        { label: 'Terms of Service', url: '#' },
+        { label: 'Contact', url: '#' },
+      ]
+    }
   ],
   socialLinks = [
-    { platform: 'Twitter', href: '#' },
-    { platform: 'LinkedIn', href: '#' },
-    { platform: 'GitHub', href: '#' },
+    { platform: 'Twitter', url: '#', icon: 'twitter' },
+    { platform: 'LinkedIn', url: '#', icon: 'linkedin' },
+    { platform: 'GitHub', url: '#', icon: 'github' },
   ],
   copyright = '© 2024 Your Company. All rights reserved.',
 }) => {
@@ -31,21 +39,23 @@ const FooterSection: React.FC<FooterSectionProps> = ({
             <p className="text-muted-foreground">{description}</p>
           </div>
           
-          <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              {links.map((link, index) => (
-                <li key={index}>
-                  <a
-                    href={link.href}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {linkGroups.map((group, groupIndex) => (
+            <div key={groupIndex}>
+              <h4 className="font-semibold mb-4">{group.title}</h4>
+              <ul className="space-y-2">
+                {group.links.map((link, index) => (
+                  <li key={index}>
+                    <a
+                      href={link.url}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
           
           <div>
             <h4 className="font-semibold mb-4">Follow Us</h4>
@@ -53,8 +63,9 @@ const FooterSection: React.FC<FooterSectionProps> = ({
               {socialLinks.map((social, index) => (
                 <a
                   key={index}
-                  href={social.href}
+                  href={social.url}
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  title={social.platform}
                 >
                   {social.platform}
                 </a>

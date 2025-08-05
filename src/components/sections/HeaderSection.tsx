@@ -2,17 +2,17 @@ import React from 'react'
 import { SectionProps } from '@/types'
 
 interface HeaderSectionProps extends SectionProps {
-  logo?: string
-  navigationItems?: Array<{ label: string; href: string }>
+  logoUrl?: string
+  navigationItems?: Array<{ label: string; url: string }>
 }
 
 const HeaderSection: React.FC<HeaderSectionProps> = ({
   title = 'Your Logo',
   navigationItems = [
-    { label: 'Home', href: '#' },
-    { label: 'About', href: '#' },
-    { label: 'Services', href: '#' },
-    { label: 'Contact', href: '#' },
+    { label: 'Home', url: '#' },
+    { label: 'About', url: '#' },
+    { label: 'Services', url: '#' },
+    { label: 'Contact', url: '#' },
   ],
 }) => {
   return (
@@ -24,7 +24,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
             {navigationItems.map((item, index) => (
               <a
                 key={index}
-                href={item.href}
+                href={item.url}
                 className="text-foreground hover:text-primary transition-colors"
               >
                 {item.label}
