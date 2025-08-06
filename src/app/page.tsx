@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   PreviewAreaClient,
   SectionEditorClient,
@@ -5,8 +8,24 @@ import {
   ImportExport,
 } from "@/components/builder";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { PageLoader } from "@/components/ui/loader";
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading time and handle initial setup
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500); // Show loader for 1.5 seconds for better UX
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <PageLoader />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
