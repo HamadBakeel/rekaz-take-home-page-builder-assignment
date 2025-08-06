@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { ExportData } from '@/types'
+import { ExportData, ExportedSectionSchema } from '@/types'
 
 // Validation schemas
 export const SectionSchema = z.object({
@@ -15,7 +15,7 @@ export const SectionSchema = z.object({
 export const ExportDataSchema = z.object({
   version: z.string(),
   createdAt: z.string(),
-  sections: z.array(SectionSchema),
+  sections: z.array(ExportedSectionSchema),
   metadata: z.object({
     title: z.string().optional(),
     description: z.string().optional(),

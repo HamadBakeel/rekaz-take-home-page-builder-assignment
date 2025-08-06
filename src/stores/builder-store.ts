@@ -148,8 +148,8 @@ export const useBuilderStore = create<BuilderStore>()(
           return {
             ...section,
             order: index,
-            createdAt: typeof section.createdAt === 'string' ? new Date(section.createdAt) : section.createdAt,
-            updatedAt: typeof section.updatedAt === 'string' ? new Date(section.updatedAt) : section.updatedAt
+            createdAt: new Date(section.createdAt),
+            updatedAt: new Date(section.updatedAt)
           }
         } catch (error) {
           console.error('Error processing section:', section, error)
