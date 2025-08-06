@@ -4,6 +4,7 @@ import React from 'react'
 
 import { useBuilderStore } from '@/stores/builder-store'
 
+import DragDropProvider from './DragDropProvider'
 import PreviewArea from './PreviewArea'
 
 export function PreviewAreaClient() {
@@ -17,11 +18,13 @@ export function PreviewAreaClient() {
   const orderedSections = getOrderedSections()
 
   return (
-    <PreviewArea
-      sections={orderedSections}
-      selectedSectionId={selectedSectionId}
-      onSectionSelect={selectSection}
-      onSectionDelete={deleteSection}
-    />
+    <DragDropProvider>
+      <PreviewArea
+        sections={orderedSections}
+        selectedSectionId={selectedSectionId}
+        onSectionSelect={selectSection}
+        onSectionDelete={deleteSection}
+      />
+    </DragDropProvider>
   )
 }

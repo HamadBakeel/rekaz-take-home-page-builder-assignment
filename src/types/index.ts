@@ -58,6 +58,7 @@ export interface BuilderStore {
   reorderSections: (fromIndex: number, toIndex: number) => void
   selectSection: (id: string | null) => void
   setDragging: (isDragging: boolean, draggedSectionId?: string | null) => void
+  cancelDrag: () => void
   exportDesign: () => ExportData
   importDesign: (data: ExportData) => void
   clearSections: () => void

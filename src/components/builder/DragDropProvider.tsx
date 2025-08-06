@@ -1,44 +1,86 @@
 'use client'
 
 import React from 'react'
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { DndProvider, useDragLayer } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+
+import { useBuilderStore } from '@/stores/builder-store'
+import DragPreview from './DragPreview'
 
 interface DragDropProviderProps {
-  onSectionReorder: (fromIndex: number, toIndex: number) => void
   children: React.ReactNode
 }
 
-const DragDropProvider: React.FC<DragDropProviderProps> = ({
-  onSectionReorder,
-  children,
-}) => {
-  const [activeId, setActiveId] = React.useState<string | null>(null)
+const CustomDragLayer: React.FC = () => {
+  const { getSectionById } = useBuilderStore()
+  
+  const {
+    itemType,
+    isDragging,
+    item,
+    initialOffset,
+    currentOffset,
+  } = useDragLayer((monitor) => ({
+    item: monitor.getItem(),
+    itemType: monitor.getItemType(),
+    initialOffset: monitor.getInitialSourceClientOffset(),
+    currentOffset: monitor.getSourceClientOffset(),
+    isDragging: monitor.isDragging(),
+  }))
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string)
+  if (!isDragging || itemType !== 'SECTION') {
+    return null
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    
-    if (over && active.id !== over.id) {
-      // Handle reordering logic here
-      // This is a placeholder implementation
+  const section = getSectionById(item?.id)
+  if (!section) {
+    return null
+  }
+
+  const layerStyles: React.CSSProperties = {
+    position: 'fixed',
+    pointerEvents: 'none',
+    zIndex: 100,
+    left: 0,
+    top: 0,
+    width: '100%',
+    height: '100%',
+  }
+
+  const getItemStyles = (
+    initialOffset: { x: number; y: number } | null,
+    currentOffset: { x: number; y: number } | null
+  ): React.CSSProperties => {
+    if (!initialOffset || !currentOffset) {
+      return {
+        display: 'none',
+      }
     }
-    
-    setActiveId(null)
+
+    const { x, y } = currentOffset
+
+    const transform = `translate(${x}px, ${y}px)`
+    return {
+      transform,
+      WebkitTransform: transform,
+    }
   }
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <SortableContext items={[]} strategy={verticalListSortingStrategy}>
-        {children}
-      </SortableContext>
-      <DragOverlay>
-        {activeId ? <div>Dragging {activeId}</div> : null}
-      </DragOverlay>
-    </DndContext>
+    <div style={layerStyles}>
+      <div style={getItemStyles(initialOffset, currentOffset)}>
+        <DragPreview section={section} />
+      </div>
+    </div>
+  )
+}
+
+const DragDropProvider: React.FC<DragDropProviderProps> = ({ children }) => {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      {children}
+      <CustomDragLayer />
+    </DndProvider>
   )
 }
 

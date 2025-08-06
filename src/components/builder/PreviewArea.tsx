@@ -4,6 +4,8 @@ import React, { useMemo, useCallback } from 'react'
 
 import { HeaderSection, HeroSection, ContentSection, FooterSection } from '@/components/sections'
 import { Section } from '@/types'
+import DraggableSection from './DraggableSection'
+import DropZone from './DropZone'
 
 interface PreviewAreaProps {
   sections: Section[]
@@ -62,74 +64,12 @@ class SectionErrorBoundary extends React.Component<
 // Memoized section renderer component with optimized re-render prevention
 const SectionRenderer = React.memo<{
   section: Section
+  index: number
   isSelected: boolean
   onSelect: (id: string) => void
   onDelete: (id: string) => void
-}>(({ section, isSelected, onSelect, onDelete }) => {
-  // Enhanced click handler with visual feedback
-  const handleSectionClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    
-    // Add ripple effect for better feedback
-    const target = e.currentTarget as HTMLElement
-    const rect = target.getBoundingClientRect()
-    const ripple = document.createElement('div')
-    const size = Math.max(rect.width, rect.height)
-    const x = e.clientX - rect.left - size / 2
-    const y = e.clientY - rect.top - size / 2
-    
-    ripple.style.cssText = `
-      position: absolute;
-      width: ${size}px;
-      height: ${size}px;
-      left: ${x}px;
-      top: ${y}px;
-      background: rgba(var(--primary), 0.1);
-      border-radius: 50%;
-      transform: scale(0);
-      animation: ripple 0.6s ease-out;
-      pointer-events: none;
-      z-index: 1;
-    `
-    
-    target.appendChild(ripple)
-    
-    // Clean up ripple after animation
-    setTimeout(() => {
-      if (ripple.parentNode) {
-        ripple.parentNode.removeChild(ripple)
-      }
-    }, 600)
-    
-    onSelect(section.id)
-  }, [section.id, onSelect])
+}>(({ section, index, isSelected, onSelect, onDelete }) => {
 
-  // Enhanced delete handler with confirmation feedback
-  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    
-    // Add visual feedback for delete action
-    const button = e.currentTarget as HTMLElement
-    button.style.transform = 'scale(0.9)'
-    
-    setTimeout(() => {
-      button.style.transform = isSelected ? 'scale(1.1)' : 'scale(1)'
-    }, 100)
-    
-    onDelete(section.id)
-  }, [section.id, onDelete, isSelected])
-
-  // Keyboard event handlers
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      onSelect(section.id)
-    }
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      e.preventDefault()
-      onDelete(section.id)
-    }
-  }, [section.id, onSelect, onDelete])
 
   // Memoized section component selection
   const SectionComponent = useMemo(() => {
@@ -147,57 +87,7 @@ const SectionRenderer = React.memo<{
     }
   }, [section.type])
 
-  // Memoized container classes for enhanced selection highlighting
-  const containerClasses = useMemo(() => {
-    const baseClasses = 'relative group cursor-pointer rounded-lg overflow-hidden outline-none'
-    const transitionClasses = 'transition-all duration-300 ease-out'
-    const selectionClasses = isSelected 
-      ? 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg transform scale-[1.02]' 
-      : 'hover:ring-1 hover:ring-primary/50 hover:ring-offset-1 hover:ring-offset-background hover:shadow-md hover:transform hover:scale-[1.01]'
-    const focusClasses = 'focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
-    
-    return `${baseClasses} ${transitionClasses} ${selectionClasses} ${focusClasses}`
-  }, [isSelected])
 
-  // Memoized overlay classes for enhanced selection feedback
-  const overlayClasses = useMemo(() => {
-    const baseClasses = 'absolute inset-0 pointer-events-none'
-    const transitionClasses = 'transition-all duration-300 ease-out'
-    const selectionOverlay = isSelected 
-      ? 'bg-primary/8 border-2 border-primary opacity-100' 
-      : 'bg-primary/0 border-2 border-transparent group-hover:bg-primary/3 group-hover:border-primary/20 opacity-0 group-hover:opacity-100'
-    
-    return `${baseClasses} ${transitionClasses} ${selectionOverlay}`
-  }, [isSelected])
-
-  // Memoized selection indicator for better visual feedback
-  const selectionIndicatorClasses = useMemo(() => {
-    const baseClasses = 'absolute top-2 left-2 z-10 w-3 h-3 rounded-full'
-    const transitionClasses = 'transition-all duration-200 ease-out'
-    const indicatorClasses = isSelected 
-      ? 'bg-primary shadow-lg scale-100 opacity-100' 
-      : 'bg-primary/50 scale-75 opacity-0 group-hover:opacity-60 group-hover:scale-90'
-    
-    return `${baseClasses} ${transitionClasses} ${indicatorClasses}`
-  }, [isSelected])
-
-  // Memoized delete button positioning and styling
-  const deleteButtonStyles = useMemo(() => {
-    return {
-      position: 'absolute' as const,
-      top: '8px',
-      right: '8px',
-      zIndex: 10,
-      transform: isSelected ? 'scale(1)' : 'scale(0.9)',
-      opacity: isSelected ? 1 : 0,
-      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-    }
-  }, [isSelected])
-
-  // Memoized delete button classes
-  const deleteButtonClasses = useMemo(() => {
-    return 'p-1.5 bg-destructive text-destructive-foreground rounded-full shadow-lg hover:bg-destructive/90 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 transition-all duration-200'
-  }, [])
 
   if (!SectionComponent) {
     return (
@@ -213,46 +103,17 @@ const SectionRenderer = React.memo<{
   }
 
   return (
-    <div 
-      className={containerClasses} 
-      onClick={handleSectionClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      role="button"
-      aria-label={`Select ${section.type} section`}
-      aria-pressed={isSelected}
+    <DraggableSection
+      section={section}
+      index={index}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      onDelete={onDelete}
     >
-      {/* Selection overlay */}
-      <div className={overlayClasses} />
-      
-      {/* Selection indicator */}
-      <div className={selectionIndicatorClasses} />
-      
-      {/* Delete button with enhanced positioning and animations */}
-      <button
-        className={deleteButtonClasses}
-        style={deleteButtonStyles}
-        onClick={handleDeleteClick}
-        title="Delete section"
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = isSelected ? 'scale(1.1)' : 'scale(1)'
-          e.currentTarget.style.opacity = '1'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = isSelected ? 'scale(1)' : 'scale(0.9)'
-          e.currentTarget.style.opacity = isSelected ? '1' : '0'
-        }}
-      >
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
-      {/* Section content */}
       <SectionErrorBoundary sectionId={section.id} sectionType={section.type}>
         <SectionComponent {...section.props} />
       </SectionErrorBoundary>
-    </div>
+    </DraggableSection>
   )
 })
 
@@ -260,13 +121,14 @@ SectionRenderer.displayName = 'SectionRenderer'
 
 // Custom comparison function to prevent unnecessary re-renders
 const arePropsEqual = (
-  prevProps: { section: Section; isSelected: boolean; onSelect: (id: string) => void; onDelete: (id: string) => void },
-  nextProps: { section: Section; isSelected: boolean; onSelect: (id: string) => void; onDelete: (id: string) => void }
+  prevProps: { section: Section; index: number; isSelected: boolean; onSelect: (id: string) => void; onDelete: (id: string) => void },
+  nextProps: { section: Section; index: number; isSelected: boolean; onSelect: (id: string) => void; onDelete: (id: string) => void }
 ) => {
-  // Only re-render if section data, selection state, or handlers change
+  // Only re-render if section data, selection state, index, or handlers change
   return (
     prevProps.section.id === nextProps.section.id &&
     prevProps.section.updatedAt.getTime() === nextProps.section.updatedAt.getTime() &&
+    prevProps.index === nextProps.index &&
     prevProps.isSelected === nextProps.isSelected &&
     prevProps.onSelect === nextProps.onSelect &&
     prevProps.onDelete === nextProps.onDelete
@@ -282,6 +144,14 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   onSectionSelect,
   onSectionDelete,
 }) => {
+  const [isReordering, setIsReordering] = React.useState(false)
+
+  // Track when sections are being reordered
+  React.useEffect(() => {
+    setIsReordering(true)
+    const timer = setTimeout(() => setIsReordering(false), 300)
+    return () => clearTimeout(timer)
+  }, [sections.map(s => s.order).join(',')])
   // Add ripple animation styles
   React.useEffect(() => {
     const style = document.createElement('style')
@@ -338,8 +208,8 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
 
   // Memoized preview content classes
   const previewContentClasses = useMemo(() => {
-    return 'w-full space-y-0' // No spacing between sections for seamless preview
-  }, [])
+    return `w-full space-y-0 transition-all duration-300 ${isReordering ? 'opacity-95' : 'opacity-100'}` // No spacing between sections for seamless preview
+  }, [isReordering])
 
   return (
     <div className="space-y-4">
@@ -357,14 +227,38 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
           EmptyState
         ) : (
           <div className={previewContentClasses}>
-            {orderedSections.map((section) => (
-              <OptimizedSectionRenderer
-                key={section.id}
-                section={section}
-                isSelected={selectedSectionId === section.id}
-                onSelect={onSectionSelect}
-                onDelete={onSectionDelete}
-              />
+            {/* Drop zone at the top */}
+            <DropZone 
+              index={0} 
+              onDrop={(dragIndex, dropIndex) => {
+                // Handle drop at the beginning
+                if (dragIndex !== dropIndex) {
+                  // This will be handled by the DraggableSection's hover logic
+                }
+              }} 
+            />
+            
+            {orderedSections.map((section, index) => (
+              <React.Fragment key={section.id}>
+                <OptimizedSectionRenderer
+                  section={section}
+                  index={index}
+                  isSelected={selectedSectionId === section.id}
+                  onSelect={onSectionSelect}
+                  onDelete={onSectionDelete}
+                />
+                
+                {/* Drop zone after each section */}
+                <DropZone 
+                  index={index + 1} 
+                  onDrop={(dragIndex, dropIndex) => {
+                    // Handle drop between sections
+                    if (dragIndex !== dropIndex) {
+                      // This will be handled by the DraggableSection's hover logic
+                    }
+                  }} 
+                />
+              </React.Fragment>
             ))}
           </div>
         )}

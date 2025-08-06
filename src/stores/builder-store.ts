@@ -105,6 +105,14 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       draggedSectionId: draggedSectionId || null
     }))
   },
+
+  cancelDrag: () => {
+    set((state) => ({
+      ...state,
+      isDragging: false,
+      draggedSectionId: null
+    }))
+  },
   
   exportDesign: () => {
     const state = get()
