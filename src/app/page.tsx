@@ -1,4 +1,4 @@
-import { PreviewAreaClient, SectionEditorClient, SectionLibraryServer } from '@/components/builder'
+import { PreviewAreaClient, SectionEditorClient, SectionLibraryServer, ImportExport } from '@/components/builder'
 
 export default function Home() {
   return (
@@ -23,7 +23,15 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground sm:hidden">Tap sections to add</p>
               </div>
               <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 80px)' }}>
-                <SectionLibraryServer />
+                <div className="space-y-6">
+                  <SectionLibraryServer />
+                  
+                  {/* Import/Export Section */}
+                  <div className="border-t border-border pt-4">
+                    <h3 className="text-sm font-medium text-foreground mb-3">Import/Export</h3>
+                    <ImportExport />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

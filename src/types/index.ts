@@ -83,10 +83,19 @@ export interface AppState {
 }
 
 // Import/Export interfaces
+export interface ExportedSection {
+  id: string
+  type: string
+  props: Record<string, any>
+  order: number
+  createdAt: string
+  updatedAt: string
+}
+
 export interface ExportData {
   version: string
   createdAt: string
-  sections: Section[]
+  sections: ExportedSection[]
   metadata: {
     title?: string
     description?: string
@@ -150,10 +159,22 @@ export const SectionSchema = z.object({
   updatedAt: z.date()
 })
 
+// Schema for imported sections (dates come as strings from JSON)
+export const ImportedSectionSchema = z.object({
+  id: z.string().min(1, 'Section ID is required'),
+  type: z.string().min(1, 'Section type is required'),
+  props: SectionPropsSchema.default({}),
+  order: z.number().int().min(0, 'Order must be a non-negative integer'),
+  createdAt: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date format'),
+  updatedAt: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date format')
+})
+
+export const ExportedSectionSchema = ImportedSectionSchema
+
 export const ExportDataSchema = z.object({
   version: z.string().min(1, 'Version is required'),
-  createdAt: z.string().datetime('Invalid date format'),
-  sections: z.array(SectionSchema).min(0, 'Sections must be an array'),
+  createdAt: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date format'),
+  sections: z.array(ExportedSectionSchema).min(0, 'Sections must be an array'),
   metadata: z.object({
     title: z.string().optional(),
     description: z.string().optional(),

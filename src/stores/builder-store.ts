@@ -123,8 +123,8 @@ export const useBuilderStore = create<BuilderStore>()(
       createdAt: new Date().toISOString(),
       sections: state.sections.map(section => ({
         ...section,
-        createdAt: section.createdAt,
-        updatedAt: section.updatedAt
+        createdAt: section.createdAt instanceof Date ? section.createdAt.toISOString() : section.createdAt,
+        updatedAt: section.updatedAt instanceof Date ? section.updatedAt.toISOString() : section.updatedAt
       })),
       metadata: {
         title: 'Website Design',
@@ -138,12 +138,30 @@ export const useBuilderStore = create<BuilderStore>()(
   importDesign: (data: ExportData) => {
     set((state) => {
       // Validate and import sections
-      const importedSections = data.sections.map((section, index) => ({
-        ...section,
-        order: index,
-        createdAt: new Date(section.createdAt),
-        updatedAt: new Date(section.updatedAt)
-      }))
+      if (!data.sections || !Array.isArray(data.sections)) {
+        console.error('Invalid sections data provided to importDesign')
+        return state
+      }
+      
+      const importedSections = data.sections.map((section, index) => {
+        try {
+          return {
+            ...section,
+            order: index,
+            createdAt: typeof section.createdAt === 'string' ? new Date(section.createdAt) : section.createdAt,
+            updatedAt: typeof section.updatedAt === 'string' ? new Date(section.updatedAt) : section.updatedAt
+          }
+        } catch (error) {
+          console.error('Error processing section:', section, error)
+          // Return section with current dates if date parsing fails
+          return {
+            ...section,
+            order: index,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        }
+      })
       
       return {
         ...state,
