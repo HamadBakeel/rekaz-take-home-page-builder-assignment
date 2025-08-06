@@ -1,13 +1,26 @@
-import { PreviewAreaClient, SectionEditorClient, SectionLibraryServer, ImportExport } from '@/components/builder'
+import {
+  PreviewAreaClient,
+  SectionEditorClient,
+  SectionLibraryServer,
+  ImportExport,
+} from "@/components/builder";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-3">
-          <h1 className="text-2xl font-bold text-foreground">Mini Website Builder</h1>
-          <p className="text-sm text-muted-foreground">Create beautiful websites with drag-and-drop simplicity</p>
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Mini Website Builder
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Create beautiful websites with drag-and-drop simplicity
+            </p>
+          </div>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -18,17 +31,28 @@ export default function Home() {
           <div className="section-library">
             <div className="bg-card rounded-lg border border-border h-full builder-panel">
               <div className="p-4 border-b border-border">
-                <h2 className="text-lg font-semibold text-foreground">Section Library</h2>
-                <p className="text-sm text-muted-foreground hidden sm:block">Drag sections to build your page</p>
-                <p className="text-sm text-muted-foreground sm:hidden">Tap sections to add</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Section Library
+                </h2>
+                <p className="text-sm text-muted-foreground hidden sm:block">
+                  Drag sections to build your page
+                </p>
+                <p className="text-sm text-muted-foreground sm:hidden">
+                  Tap sections to add
+                </p>
               </div>
-              <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 80px)' }}>
+              <div
+                className="p-4 overflow-y-auto"
+                style={{ maxHeight: "calc(100% - 80px)" }}
+              >
                 <div className="space-y-6">
                   <SectionLibraryServer />
-                  
+
                   {/* Import/Export Section */}
                   <div className="border-t border-border pt-4">
-                    <h3 className="text-sm font-medium text-foreground mb-3">Import/Export</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3">
+                      Import/Export
+                    </h3>
                     <ImportExport />
                   </div>
                 </div>
@@ -40,10 +64,17 @@ export default function Home() {
           <div className="preview-area">
             <div className="bg-card rounded-lg border border-border h-full builder-panel">
               <div className="p-4 border-b border-border">
-                <h2 className="text-lg font-semibold text-foreground">Preview</h2>
-                <p className="text-sm text-muted-foreground">Live preview of your website</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Preview
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Live preview of your website
+                </p>
               </div>
-              <div className="p-4 h-full overflow-y-auto" style={{ maxHeight: 'calc(100% - 80px)' }}>
+              <div
+                className="p-4 h-full overflow-y-auto"
+                style={{ maxHeight: "calc(100% - 80px)" }}
+              >
                 <PreviewAreaClient />
               </div>
             </div>
@@ -53,10 +84,17 @@ export default function Home() {
           <div className="section-editor">
             <div className="bg-card rounded-lg border border-border h-full builder-panel">
               <div className="p-4 border-b border-border">
-                <h2 className="text-lg font-semibold text-foreground">Properties</h2>
-                <p className="text-sm text-muted-foreground">Edit selected section</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Properties
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Edit selected section
+                </p>
               </div>
-              <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 80px)' }}>
+              <div
+                className="p-4 overflow-y-auto"
+                style={{ maxHeight: "calc(100% - 80px)" }}
+              >
                 <SectionEditorClient />
               </div>
             </div>
@@ -64,5 +102,5 @@ export default function Home() {
         </div>
       </main>
     </div>
-  )
+  );
 }
