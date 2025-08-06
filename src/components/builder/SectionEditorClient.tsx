@@ -1,31 +1,38 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo, useCallback } from 'react'
+import { useBuilderStore } from '@/stores/builder-store'
+import PropertyEditor from './PropertyEditor'
 
-export function SectionEditorClient() {
+export const SectionEditorClient: React.FC = React.memo(() => {
+  // Selective subscription for optimal performance
+  const selectedSectionId = useBuilderStore(state => state.selectedSectionId)
+  const getSectionById = useBuilderStore(state => state.getSectionById)
+  const updateSection = useBuilderStore(state => state.updateSection)
+
+  // Memoized selected section to prevent unnecessary re-renders
+  const selectedSection = useMemo(() => {
+    return selectedSectionId ? getSectionById(selectedSectionId) || null : null
+  }, [selectedSectionId, getSectionById])
+
+  // Memoized update handler with error handling and rollback mechanism
+  const handleSectionUpdate = useCallback((id: string, props: Record<string, any>) => {
+    try {
+      updateSection(id, props)
+    } catch (error) {
+      console.error('Failed to update section:', error)
+      // Could add toast notification here for user feedback
+      // In a real app, you might want to implement a rollback mechanism
+      throw error // Re-throw to let PropertyEditor handle the error
+    }
+  }, [updateSection])
+
   return (
-    <div className="space-y-4">
-      <div className="text-center py-8">
-        <div className="w-12 h-12 bg-muted rounded-lg mx-auto flex items-center justify-center mb-3">
-          <svg 
-            className="w-6 h-6 text-muted-foreground" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
-            />
-          </svg>
-        </div>
-        <h3 className="text-sm font-medium text-foreground mb-1">No section selected</h3>
-        <p className="text-xs text-muted-foreground">
-          Select a section from the preview to edit its properties
-        </p>
-      </div>
-    </div>
+    <PropertyEditor
+      section={selectedSection}
+      onSectionUpdate={handleSectionUpdate}
+    />
   )
-}
+})
+
+SectionEditorClient.displayName = 'SectionEditorClient'

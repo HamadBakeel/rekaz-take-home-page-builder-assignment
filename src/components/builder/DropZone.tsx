@@ -31,7 +31,7 @@ const DropZone: React.FC<DropZoneProps> = ({ index, onDrop }) => {
         return { success: true, targetIndex: index }
       } catch (error) {
         console.error('Error during drop zone drop:', error)
-        return { success: false, error: error.message }
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
       }
     },
     collect: (monitor) => ({
@@ -44,7 +44,7 @@ const DropZone: React.FC<DropZoneProps> = ({ index, onDrop }) => {
 
   return (
     <div
-      ref={drop}
+      ref={drop as any}
       className={`
         mx-4 rounded-full transition-all duration-300 ease-out relative
         ${isActive 

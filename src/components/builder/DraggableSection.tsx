@@ -93,6 +93,9 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
         document.removeEventListener('keydown', handleKeyDown)
       }
     }
+    
+    // Return cleanup function for all code paths
+    return () => {}
   }, [isDragging, setDragging])
 
   const [{ isOver, canDrop }, drop] = useDrop({

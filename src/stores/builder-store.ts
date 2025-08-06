@@ -1,8 +1,10 @@
 import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
 
 import { Section, SectionTemplate, ExportData, BuilderStore } from '@/types'
 
-export const useBuilderStore = create<BuilderStore>((set, get) => ({
+export const useBuilderStore = create<BuilderStore>()(
+  subscribeWithSelector((set, get) => ({
   // Initial state
   sections: [],
   selectedSectionId: null,
@@ -176,4 +178,4 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     const state = get()
     return state.selectedSectionId ? state.getSectionById(state.selectedSectionId) : undefined
   },
-}))
+})))
