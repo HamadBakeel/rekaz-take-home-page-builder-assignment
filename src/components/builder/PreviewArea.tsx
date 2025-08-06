@@ -2,6 +2,7 @@
 
 import React, { useMemo, useCallback, useState, useEffect } from "react";
 import { Maximize2, Minimize2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   HeaderSection,
@@ -12,7 +13,7 @@ import {
 import { Section } from "@/types";
 import { BREAKPOINTS } from "@/utils/constants";
 import { Button } from "@/components/ui/button";
-import DraggableSection from "./DraggableSection";
+import { AnimatedSection } from "./AnimatedSection";
 import DropZone from "./DropZone";
 
 interface PreviewAreaProps {
@@ -137,7 +138,7 @@ const SectionRenderer = React.memo<{
   }
 
   return (
-    <DraggableSection
+    <AnimatedSection
       section={section}
       index={index}
       isSelected={isSelected}
@@ -147,7 +148,7 @@ const SectionRenderer = React.memo<{
       <SectionErrorBoundary sectionId={section.id} sectionType={section.type}>
         <SectionComponent {...section.props} />
       </SectionErrorBoundary>
-    </DraggableSection>
+    </AnimatedSection>
   );
 });
 
@@ -387,7 +388,13 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
           }}
         >
           {orderedSections.length === 0 ? (
-            EmptyState
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {EmptyState}
+            </motion.div>
           ) : (
             <div className={previewContentClasses}>
               {/* Drop zone at the top */}
@@ -401,28 +408,30 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
                 }}
               />
 
-              {orderedSections.map((section, index) => (
-                <React.Fragment key={section.id}>
-                  <OptimizedSectionRenderer
-                    section={section}
-                    index={index}
-                    isSelected={selectedSectionId === section.id}
-                    onSelect={onSectionSelect}
-                    onDelete={onSectionDelete}
-                  />
+              <AnimatePresence mode="popLayout">
+                {orderedSections.map((section, index) => (
+                  <div key={section.id}>
+                    <OptimizedSectionRenderer
+                      section={section}
+                      index={index}
+                      isSelected={selectedSectionId === section.id}
+                      onSelect={onSectionSelect}
+                      onDelete={onSectionDelete}
+                    />
 
-                  {/* Drop zone after each section */}
-                  <DropZone
-                    index={index + 1}
-                    onDrop={(dragIndex, dropIndex) => {
-                      // Handle drop between sections
-                      if (dragIndex !== dropIndex) {
-                        // This will be handled by the DraggableSection's hover logic
-                      }
-                    }}
-                  />
-                </React.Fragment>
-              ))}
+                    {/* Drop zone after each section */}
+                    <DropZone
+                      index={index + 1}
+                      onDrop={(dragIndex, dropIndex) => {
+                        // Handle drop between sections
+                        if (dragIndex !== dropIndex) {
+                          // This will be handled by the DraggableSection's hover logic
+                        }
+                      }}
+                    />
+                  </div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </div>

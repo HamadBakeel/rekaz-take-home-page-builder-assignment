@@ -23,14 +23,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSectionTemplateById } from "@/data/section-templates";
 import { X, ChevronUp, ChevronDown } from "lucide-react";
 import { BREAKPOINTS } from "@/utils/constants";
-import {
-  HeaderSectionPropsSchema,
-  HeroSectionPropsSchema,
-  ContentSectionPropsSchema,
-  FooterSectionPropsSchema,
-  ImageUrlSchema,
-  UrlSchema,
-} from "@/types";
+import { ImageUrlSchema, UrlSchema } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PropertyEditorProps {
   section: Section | null;
@@ -502,7 +496,12 @@ const PropertyEditor: React.FC<PropertyEditorProps> = React.memo(
       return (
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center py-8">
+            <motion.div
+              className="text-center py-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
               <div className="w-12 h-12 bg-muted rounded-lg mx-auto flex items-center justify-center mb-3">
                 <svg
                   className="w-6 h-6 text-muted-foreground"
@@ -524,7 +523,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = React.memo(
               <p className="text-xs text-muted-foreground">
                 Select a section from the preview to edit its properties
               </p>
-            </div>
+            </motion.div>
           </CardContent>
         </Card>
       );
@@ -535,10 +534,16 @@ const PropertyEditor: React.FC<PropertyEditorProps> = React.memo(
     // Mobile floating editor
     if (isMobile) {
       return (
-        <div
-          className={`fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ${
-            isCollapsed ? "translate-y-[calc(100%-3.5rem)]" : "translate-y-0"
-          }`}
+        <motion.div
+          className={`fixed bottom-0 left-0 right-0 z-50`}
+          initial={{ y: "100%" }}
+          animate={{ y: isCollapsed ? "calc(100% - 3.5rem)" : 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+            duration: 0.3,
+          }}
         >
           {/* Drag handle / Header */}
           <div
@@ -576,70 +581,104 @@ const PropertyEditor: React.FC<PropertyEditorProps> = React.memo(
 
           {/* Editor content */}
           <div className="bg-card border-x border-b border-border rounded-b-lg shadow-lg max-h-[70vh] overflow-y-auto">
-            <div className="p-4 space-y-3">
-              {fieldConfigs.map((config) => (
-                <div key={config.key} className="space-y-1.5">
-                  <Label
-                    htmlFor={`field-${config.key}`}
-                    className={`text-xs font-medium ${
-                      config.required
-                        ? 'after:content-["*"] after:text-red-500 after:ml-1'
-                        : ""
-                    }`}
+            <AnimatePresence>
+              <motion.div
+                className="p-4 space-y-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1, duration: 0.2 }}
+              >
+                {fieldConfigs.map((config) => (
+                  <motion.div
+                    key={config.key}
+                    className="space-y-1.5"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    {config.label}
-                  </Label>
-                  {renderField(config)}
-                  {errors[config.key] && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors[config.key]?.message}
-                    </p>
+                    <Label
+                      htmlFor={`field-${config.key}`}
+                      className={`text-xs font-medium ${
+                        config.required
+                          ? 'after:content-["*"] after:text-red-500 after:ml-1'
+                          : ""
+                      }`}
+                    >
+                      {config.label}
+                    </Label>
+                    {renderField(config)}
+                    <AnimatePresence>
+                      {errors[config.key] && (
+                        <motion.p
+                          className="text-xs text-red-500 mt-1"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                        >
+                          {errors[config.key]?.message}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
+
+                <AnimatePresence>
+                  {Object.keys(errors).length > 0 && (
+                    <motion.div
+                      className="mt-3 p-2 bg-red-50 border border-red-200 rounded-md"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="text-xs text-red-700 font-medium">
+                            {errors._updateError
+                              ? "Update failed:"
+                              : "Please fix the errors:"}
+                          </p>
+                          <ul className="text-xs text-red-600 mt-1 space-y-0.5">
+                            {Object.values(errors).map((error, index) => (
+                              <li key={index}>• {error.message}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        {errors._updateError && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRollback();
+                            }}
+                            className="ml-2 text-xs"
+                          >
+                            Revert
+                          </Button>
+                        )}
+                      </div>
+                    </motion.div>
                   )}
-                </div>
-              ))}
+                </AnimatePresence>
 
-              {Object.keys(errors).length > 0 && (
-                <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-md">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-xs text-red-700 font-medium">
-                        {errors._updateError
-                          ? "Update failed:"
-                          : "Please fix the errors:"}
+                <AnimatePresence>
+                  {isDirty && !hasValidationErrors && (
+                    <motion.div
+                      className="mt-3 p-2 bg-green-50 border border-green-200 rounded-md"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                    >
+                      <p className="text-xs text-green-700">
+                        ✓ Changes saved automatically
                       </p>
-                      <ul className="text-xs text-red-600 mt-1 space-y-0.5">
-                        {Object.values(errors).map((error, index) => (
-                          <li key={index}>• {error.message}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    {errors._updateError && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRollback();
-                        }}
-                        className="ml-2 text-xs"
-                      >
-                        Revert
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {isDirty && !hasValidationErrors && (
-                <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-md">
-                  <p className="text-xs text-green-700">
-                    ✓ Changes saved automatically
-                  </p>
-                </div>
-              )}
-            </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
@@ -657,63 +696,100 @@ const PropertyEditor: React.FC<PropertyEditorProps> = React.memo(
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {fieldConfigs.map((config) => (
-            <div key={config.key} className="space-y-2">
-              <Label
-                htmlFor={`field-${config.key}`}
-                className={`text-sm font-medium ${
-                  config.required
-                    ? 'after:content-["*"] after:text-red-500 after:ml-1'
-                    : ""
-                }`}
-              >
-                {config.label}
-              </Label>
-              {renderField(config)}
-              {errors[config.key] && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors[config.key]?.message}
-                </p>
-              )}
-            </div>
-          ))}
-
-          {Object.keys(errors).length > 0 && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-sm text-red-700 font-medium">
-                    {errors._updateError
-                      ? "Update failed:"
-                      : "Please fix the following errors:"}
-                  </p>
-                  <ul className="text-xs text-red-600 mt-1 space-y-1">
-                    {Object.values(errors).map((error, index) => (
-                      <li key={index}>• {error.message}</li>
-                    ))}
-                  </ul>
-                </div>
-                {errors._updateError && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleRollback}
-                    className="ml-2 text-xs"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={section.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {fieldConfigs.map((config, index) => (
+                <motion.div
+                  key={config.key}
+                  className="space-y-2"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: index * 0.05 }}
+                >
+                  <Label
+                    htmlFor={`field-${config.key}`}
+                    className={`text-sm font-medium ${
+                      config.required
+                        ? 'after:content-["*"] after:text-red-500 after:ml-1'
+                        : ""
+                    }`}
                   >
-                    Revert
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
+                    {config.label}
+                  </Label>
+                  {renderField(config)}
+                  <AnimatePresence>
+                    {errors[config.key] && (
+                      <motion.p
+                        className="text-xs text-red-500 mt-1"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                      >
+                        {errors[config.key]?.message}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
 
-          {isDirty && !hasValidationErrors && (
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-700">
-                ✓ Changes saved automatically
-              </p>
-            </div>
-          )}
+          <AnimatePresence>
+            {Object.keys(errors).length > 0 && (
+              <motion.div
+                className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm text-red-700 font-medium">
+                      {errors._updateError
+                        ? "Update failed:"
+                        : "Please fix the following errors:"}
+                    </p>
+                    <ul className="text-xs text-red-600 mt-1 space-y-1">
+                      {Object.values(errors).map((error, index) => (
+                        <li key={index}>• {error.message}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  {errors._updateError && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleRollback}
+                      className="ml-2 text-xs"
+                    >
+                      Revert
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {isDirty && !hasValidationErrors && (
+              <motion.div
+                className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                <p className="text-sm text-green-700">
+                  ✓ Changes saved automatically
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardContent>
       </Card>
     );
