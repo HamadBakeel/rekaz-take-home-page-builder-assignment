@@ -40,6 +40,8 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
   const [touchDragging, setTouchDragging] = useState(false);
   const [autoScrolling, setAutoScrolling] = useState(false);
   const autoScrollTimerRef = useRef<number | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const touchStartTimeRef = useRef<number | null>(null);
 
   // Check if we're on mobile
   useEffect(() => {
@@ -128,6 +130,23 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
     // Return cleanup function for all code paths
     return () => {};
   }, [isDragging, setDragging]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      // Clear auto-scroll timer
+      if (autoScrollTimerRef.current !== null) {
+        window.clearInterval(autoScrollTimerRef.current);
+        autoScrollTimerRef.current = null;
+      }
+
+      // Clear long press timer
+      if (longPressTimerRef.current !== null) {
+        window.clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Auto-scroll function for mobile drag
   const handleAutoScroll = (clientY: number) => {
@@ -267,6 +286,7 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isMobile && e.touches.length === 1 && e.touches[0]) {
       setTouchStartY(e.touches[0].clientY);
+      touchStartTimeRef.current = Date.now();
     }
   };
 
@@ -280,8 +300,13 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
       const touchY = e.touches[0].clientY;
       const deltaY = touchY - touchStartY;
 
-      // If we've moved more than 10px vertically, consider it a drag
-      if (Math.abs(deltaY) > 10 && !touchDragging) {
+      // Check if this is a long press or a drag
+      const touchDuration = touchStartTimeRef.current
+        ? Date.now() - touchStartTimeRef.current
+        : 0;
+
+      // If we've moved more than 10px vertically and it's not a long press (less than 500ms), consider it a drag
+      if (Math.abs(deltaY) > 10 && !touchDragging && touchDuration < 500) {
         setTouchDragging(true);
         setDragging(true, section.id);
         // Prevent default to stop viewport scrolling during drag
@@ -346,6 +371,28 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
   const handleTouchEnd = () => {
     if (isMobile) {
       setTouchStartY(null);
+      touchStartTimeRef.current = null;
+
+      if (touchDragging) {
+        setTouchDragging(false);
+        setDragging(false);
+
+        // Clear any auto-scroll timers
+        if (autoScrollTimerRef.current !== null) {
+          window.clearInterval(autoScrollTimerRef.current);
+          autoScrollTimerRef.current = null;
+          setAutoScrolling(false);
+        }
+      }
+    }
+  };
+
+  // Handle touch cancel events (similar to touch end)
+  const handleTouchCancel = () => {
+    if (isMobile) {
+      setTouchStartY(null);
+      touchStartTimeRef.current = null;
+
       if (touchDragging) {
         setTouchDragging(false);
         setDragging(false);
@@ -435,6 +482,7 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
         tabIndex={0}
         role="button"
         aria-label={`Select ${section.type} section`}
